@@ -1,0 +1,185 @@
+= Twitter クライアント sayakaちゃんを Linux でも
+Kenichiro Matohara(matoken) <maroken@kagolug.org>
+:revnumber: 1.0
+:revdate: 2021-03-14(Sun)
+:revremark: 小江戸らぐ 2021.03.1「{doctitle}」
+:homepage: https://matoken.org/
+:imagesdir: resources
+:data-uri:
+:example-caption: 例
+:table-caption: 表
+:figure-caption: 図
+:backend: revealjs
+:revealjs_theme: serif
+:customcss: resources/my-css.css
+:revealjs_slideNumber: c/t
+:title-slide-transition: none
+:icons: font
+:revealjs_hash: true
+:revealjs_center: true
+:revealjs_autoPlayMedia: true
+:revealjs_transition: false  
+:revealjs_transitionSpeed: fast
+
+== link:https://matoken.org[Kenichiro Matohara(matoken) https://matoken.org]
+
+image::map.jpg[background, size=cover]
+
+* 南隅から参加(鹿児島の右下)
+* 好きなLinuxディストリビューションはDebian
+* お仕事募集 mailto:work@matohara.org
+
+== 鹿児島らぐ https://kagolug.org/
+
+* OSC21ONお疲れ様でした!
+
+== Twitter クライアント sayakaちゃんをLinuxでも
+
+== sayakaちゃん
+
+* link:https://github.com/isaki68k/sayaka/[isaki68k/sayaka]
+
+====
+ターミナルに特化した twitter クライアントです。
+
+* フィルタストリームの垂れ流しが出来ます。
+* フィルタストリームによる疑似ホームタイムラインが表示できます。
+* mlterm などの SIXEL 対応ターミナル用です。
+* X68030/25MHz、メモリ12MB でも快適(?)動作。
+====
+
+== OSCのNetBSDブースでよくお見かけしていた
+
+X68030, Sun3/60, aarch64, News, hp300……
+
+link:https://nitter.matoken.org/search?f=tweets&q=netbsd+sayaka&since=&until=&near=[nitter]
+
+== 手元の環境でも動かしたい
+
+* OSはLinux
+* マシンは10年くらい前のものだけどNetBSDのターゲットに比べるとかなりリッチ
+
+== build
+
+[source,shell]
+----
+$ git clone https://github.com/isaki68k/sayaka/ <.>
+$ cd sayaka
+$ git checkout 3.5.0 
+HEAD is now at 958f630 ver 3.5.0 (2021/03/03)
+$ ./configure <.>
+----
+
+<.> sayakaのsourceをclone
+<.> configure
+
+=== !
+
+足りないものがパッケージ名で表示されて助かる :)
+
+[source,shell]
+----
+configure: error: *** mbedtls not found.
+        On Ubuntu, sudo apt install libmbedtls-dev
+----
+
+[source,shell]
+----
+configure: error: *** mbedtls not found.
+        On Ubuntu, sudo apt install libmbedtls-dev
+----
+
+=== !
+
+`./configure` が通ったらmake……失敗です．
+
+[source,shell]
+----
+$ make
+(cd src; make all)
+make[1]: Entering directory '/home/matoken/src/sayaka/src'
+Makefile:3: *** missing separator.  Stop.
+make[1]: Leaving directory '/home/matoken/src/sayaka/src'
+make: *** [Makefile:2: all] Error 2
+----
+
+必要なものをよく見ると，今回のバージョンからGNU makeではなく *BSD make* が必要になっていました．
+
+[quote]
+....
+必要なもの
+C++17 compiler
+jpeg (libjpeg)
+libpng
+mbedtls (2.9.0 or later?)
+BSD make (not GNU make)
+....
+
+=== !
+
+BSD makeを導入
+
+[source,shell]
+----
+$ sudo apt install bmake <.>
+$ bmake sayaka <.>
+$ src/sayaka --version <.>
+sayaka version 3.5.0 (2021/03/03)
+$ install src/sayaka ~/bin/ <.>
+----
+
+<.> BSD makeを導入
+<.> BSD makeでsayakaをmake
+<.> 出来上がったsayakaを叩いてみる
+<.> sayakaを適当な場所( ~/bin )にコピーにinstall
+
+ということでsayaka 3.5.0 がビルドできました :)
+
+== 主な使い方
+
+* ホームタイムライン表示  +
+`sayaka --home`
+* キーワード検索( `,` で区切って繋いで行くと or 検索になる)  +
+`sayaka '#koedolug,#kagolug,"東海道らぐ","鹿児島らぐ"',-from:matoken1,from:kagolug`
+* タイムライン録画，再生  +
+`--record, --play`
+* 投稿  +
+`echo "message" | sayaka --post`
+
+== SIXEL対応端末で画像も表示
+
+* mlterm
+* xterm
+* yaft
+
+等々
+
+NOTE: Sixelの活用については
+-> link:https://qiita.com/arakiken/items/3e4bc9a6e43af0198e46[Sixel Graphicsを活用したアプリケーションの御紹介 - Qiita]
+
+== Xの上のmltermのsayaka
+
+image:20210313_23:03:00-150385.jpg[]
+
+link:https://nitter.matoken.org/matoken1/status/1368023181160632323#m[matoken (@matoken1): "mlterm+sayakaとyoutube-dl+ffplay で #osc21on.spring" | nitter]
+
+== framebutterでも(fb + yaft + sayaka)
+
+image:20210313_23:03:28-150738.jpg[]
+
+link:https://nitter.matoken.org/i/status/1191608735652646912[matoken (@matoken1): "ThinkPad X201i の Ubuntu 19.10 amd64 の console(tty3) で yaft + sayaka" | nitter]
+
+== 開発は日本語
+
+日本語話者にはとっつきやすい
+
+image:20210313_23:03:35-152899.jpg[]
+
+link:https://nitter.matoken.org/matoken1/status/1255881160527237120#m[matoken (@matoken1): "直った :) "ターミナルの画面リサイズでSAYAKAが終了する · Issue #13 · isaki68k/sayaka" https://github.com/isaki68k/sayaka/issues/13" | nitter]
+
+== まとめ
+
+* ストリーム垂れ流しができるのでイベント時などに便利
+* terminal特化なのでXがなくても動くので少リソースでも動いていろいろな環境で
+* termlnalでもSizelで画像が表示できるので見た目も○
+
